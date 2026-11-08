@@ -23,7 +23,7 @@ var API_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
 ```
 
 ### 3. 商品画像を置く
-`images/` フォルダに `happybag-5500.jpg` と `happybag-10000.jpg` をアップロードします（GitHub の画面の「Add file」→「Upload files」で可）。
+`images/` フォルダに `hp2027-5000.jpg` と `hp2027-10000.jpg` をアップロードします（GitHub の画面の「Add file」→「Upload files」で可）。
 
 ## 運用メモ
 - 受付期間・引取日・注意事項・用意数などは、スプレッドシートの「設定」シートの黄色いセルを書き換えるとフォームに反映されます
