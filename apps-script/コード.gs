@@ -2,7 +2,7 @@
  * Tully's Coffee 2027 Happy Bag 予約申込フォーム（和光理化学研究所店）
  * スプレッドシートの「拡張機能 > Apps Script」に貼り付け、ウェブアプリとしてデプロイします。
  * フォーム画面は GitHub Pages の index.html です（このスクリプトはデータの受け口）。
- * 「設定」シートの行の位置は動かさないでください（B4〜B13、A15〜F16 を読み込みます）。
+ * 「設定」シートの行の位置は動かさないでください（B4〜B13、A15〜F16、B19 を読み込みます）。
  */
 
 const ORDER_SHEET = '申込一覧';
@@ -148,6 +148,7 @@ function getConfig_() {
     perPersonLimit: v[6] === '' ? null : Number(v[6]),
     sendMail: String(v[7]).trim() === 'する',
     notes: String(v[8] || ''),
+    signature: String(s.getRange('B19').getValue() || ''),
     products: products
   };
 }
@@ -229,6 +230,6 @@ function mailBody_(cfg, o) {
   if (o.message) lines.push('■ 通信欄：' + o.message.replace(/^'/, ''));
   lines.push('', '【お支払い】', cfg.payment);
   if (cfg.notes) lines.push('', '【ご注意】', cfg.notes);
-  lines.push('', 'お受け取りの際に申込番号をお伝えください。', '', cfg.storeName);
+  lines.push('', 'お受け取りの際に申込番号をお伝えください。', '', cfg.signature || cfg.storeName);
   return lines.join('\n');
 }
