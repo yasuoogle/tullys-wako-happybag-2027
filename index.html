@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Happy Bag 予約申込</title>
+<style>
+  :root {
+    --bg: #f7f2ec; --card: #ffffff; --ink: #2b211b; --sub: #6f625a;
+    --brand: #4a2e1f; --accent: #b3262d; --line: #e4dad1; --soft: #f1e8df;
+    --ok: #2f6b3a; --warn-bg: #fff4d6; --warn: #7a5a00; --err: #b3262d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+    line-height: 1.7; -webkit-text-size-adjust: 100%; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px 48px; }
+  header { background: var(--brand); color: #fff; padding: 28px 16px 24px; text-align: center; }
+  header .store { font-size: 13px; letter-spacing: .08em; opacity: .85; margin: 0 0 4px; }
+  header h1 { font-size: 22px; margin: 0; font-weight: 700; letter-spacing: .02em; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .card h2 { font-size: 16px; margin: 0 0 12px; padding-left: 10px; border-left: 4px solid var(--accent); }
+  .banner { border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-weight: 600; }
+  .banner.before, .banner.closed { background: var(--warn-bg); color: var(--warn); }
+  .product { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 0; border-top: 1px solid var(--line); }
+  .product:first-of-type { border-top: 0; padding-top: 0; }
+  .item { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+  .item:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+  .item .product { border-top: 0; padding: 12px 0 0; }
+  .item img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; border-radius: 8px; background: var(--soft); }
+  input[type=date] { min-height: 48px; -webkit-appearance: none; appearance: none; }
+  .product .pname { font-weight: 700; }
+  .product .price { color: var(--accent); font-weight: 700; font-size: 18px; }
+  .product .left { font-size: 12px; color: var(--sub); }
+  .product .left.soldout { color: var(--err); font-weight: 700; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
+  .stepper button { width: 44px; height: 44px; border: 0; background: var(--soft); color: var(--brand); font-size: 22px; cursor: pointer; }
+  .stepper button:disabled { color: #c9bcb1; cursor: default; }
+  .stepper output { width: 40px; text-align: center; font-weight: 700; font-size: 18px; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--brand); font-weight: 700; }
+  .total .yen { font-size: 24px; color: var(--accent); }
+  label.f { display: block; margin-top: 14px; font-weight: 600; font-size: 14px; }
+  label.f:first-of-type { margin-top: 0; }
+  .req, .opt { font-size: 11px; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; font-weight: 700; }
+  .req { background: var(--accent); color: #fff; }
+  .opt { background: var(--soft); color: var(--sub); }
+  input[type=text], input[type=tel], input[type=email], input[type=date], select, textarea {
+    width: 100%; margin-top: 6px; padding: 12px; font-size: 16px; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 0; border-color: var(--brand); }
+  textarea { min-height: 88px; resize: vertical; }
+  .hint { font-size: 12px; color: var(--sub); margin-top: 4px; }
+  .info p { margin: 0; white-space: pre-wrap; font-size: 14px; }
+  .info p + h3 { margin-top: 14px; }
+  .info h3 { font-size: 14px; margin: 0 0 4px; color: var(--brand); }
+  .agree { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; font-size: 14px; }
+  .agree input { width: 20px; height: 20px; margin-top: 3px; flex-shrink: 0; }
+  .btn { display: block; width: 100%; margin-top: 20px; padding: 16px; font-size: 17px; font-weight: 700;
+    border: 0; border-radius: 10px; background: var(--accent); color: #fff; cursor: pointer; font-family: inherit; }
+  .btn:disabled { background: #cdbfb4; cursor: default; }
+  .btn.ghost { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
+  .error { color: var(--err); font-weight: 600; margin-top: 12px; font-size: 14px; }
+  dl.confirm { margin: 0; display: grid; grid-template-columns: 10.5em 1fr; gap: 8px 12px; font-size: 15px; }
+  dl.confirm dt { color: var(--sub); }
+  dl.confirm dd { margin: 0; word-break: break-all; white-space: pre-wrap; }
+  .done { text-align: center; }
+  .done .no { font-size: 30px; font-weight: 800; color: var(--brand); letter-spacing: .05em; margin: 8px 0; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .loading { text-align: center; color: var(--sub); padding: 48px 0; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <p class="store" id="storeName"></p>
+  <h1 id="title"></h1>
+</header>
+<div class="wrap">
+  <div id="banner" class="banner" hidden></div>
+  <div id="loading" class="loading">読み込み中…</div>
+  <div id="loadError" class="card error" hidden></div>
+
+  <!-- 入力画面 -->
+  <form id="formView" novalidate hidden>
+    <section class="card">
+      <h2>注文内容</h2>
+      <div id="products"></div>
+      <div class="total"><span>合計（税込）</span><span><span class="yen" id="total">0</span> 円</span></div>
+    </section>
+
+    <section class="card">
+      <h2>お客さま情報</h2>
+      <label class="f" for="name">氏名<span class="req">必須</span></label>
+      <input type="text" id="name" autocomplete="name" placeholder="例）和光 太郎" required>
+      <label class="f" for="email">連絡先メールアドレス<span class="req">必須</span></label>
+      <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="例）taro@example.com" required>
+      <div class="hint" id="mailHint">ご予約内容の確認メールをお送りします。</div>
+      <label class="f" for="pickup">引取日<span class="req">必須</span></label>
+      <input type="date" id="pickup" required>
+      <div class="hint" id="pickupHint"></div>
+      <div class="hp" aria-hidden="true"><label>website<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
+    </section>
+
+    <section class="card info">
+      <h2>お支払い・ご注意</h2>
+      <div id="infoBody"></div>
+      <label class="agree"><input type="checkbox" id="agree"><span>上記の内容を確認しました</span></label>
+    </section>
+
+    <div class="error" id="formError" role="alert"></div>
+    <button type="submit" class="btn" id="toConfirm">入力内容を確認する</button>
+  </form>
+
+  <!-- 確認画面 -->
+  <section id="confirmView" hidden>
+    <div class="card">
+      <h2>ご予約内容の確認</h2>
+      <dl class="confirm" id="confirmList"></dl>
+    </div>
+    <div class="error" id="sendError" role="alert"></div>
+    <button type="button" class="btn" id="send">この内容で予約する</button>
+    <button type="button" class="btn ghost" id="back">修正する</button>
+  </section>
+
+  <!-- 完了画面 -->
+  <section id="doneView" class="card done" hidden>
+    <h2 style="text-align:left">ご予約ありがとうございます</h2>
+    <p>申込番号</p>
+    <div class="no" id="orderNo"></div>
+    <p id="doneMsg"></p>
+  </section>
+</div>
+
+<script>
+  // ▼ Apps Script をウェブアプリとしてデプロイしたときの URL（…/exec）を貼り付けてください
+  var API_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+  // ▼ リポジトリ内の商品画像（スプレッドシートに画像URLがあればそちらを優先）
+  var LOCAL_IMAGES = ['images/happybag-5500.jpg', 'images/happybag-10000.jpg'];
+
+  var CONFIG = null;
+  var qty = [];
+  var $ = function (id) { return document.getElementById(id); };
+  var yen = function (n) { return Number(n).toLocaleString('ja-JP'); };
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function maxFor(i) {
+    var p = CONFIG.products[i], m = CONFIG.maxQty;
+    if (CONFIG.perPersonLimit != null) m = Math.min(m, CONFIG.perPersonLimit);
+    if (p.remaining != null) m = Math.min(m, p.remaining);
+    return m;
+  }
+
+  function render() {
+    $('storeName').textContent = CONFIG.storeName;
+    $('title').textContent = CONFIG.title;
+    document.title = CONFIG.title;
+
+    var b = $('banner');
+    if (CONFIG.status === 'before') {
+      b.hidden = false; b.className = 'banner before';
+      b.textContent = '受付は ' + CONFIG.openAtText + ' から開始します。';
+    } else if (CONFIG.status === 'closed') {
+      b.hidden = false; b.className = 'banner closed';
+      b.textContent = 'ご予約の受付は終了しました。';
+    } else if (CONFIG.closeAtText) {
+      b.hidden = false; b.className = 'banner';
+      b.style.background = 'var(--soft)';
+      b.textContent = '受付締切：' + CONFIG.closeAtText;
+    }
+
+    var box = $('products'); box.innerHTML = '';
+    CONFIG.products.forEach(function (p, i) {
+      if (qty[i] > maxFor(i)) qty[i] = maxFor(i);
+      var item = el('div', 'item');
+      var src = p.image || LOCAL_IMAGES[i];
+      if (src) {
+        var img = el('img'); img.src = src; img.alt = p.name + 'の内容'; img.loading = 'lazy';
+        img.onerror = function () { img.remove(); };
+        item.appendChild(img);
+      }
+      var row = el('div', 'product');
+      var info = el('div');
+      info.appendChild(el('div', 'pname', p.name));
+      var pr = el('div', 'price', yen(p.price) + '円');
+      pr.appendChild(el('span', 'left', '（税込）'));
+      info.appendChild(pr);
+      var notes = [];
+      if (p.remaining === 0) notes.push('完売しました');
+      else if (p.remaining != null && p.remaining <= 10) notes.push('残り' + p.remaining + '個');
+      if (CONFIG.perPersonLimit != null) notes.push('お一人さま' + CONFIG.perPersonLimit + '個まで');
+      if (notes.length) info.appendChild(el('div', 'left' + (p.remaining === 0 ? ' soldout' : ''), notes.join('・')));
+      var st = el('div', 'stepper');
+      var minus = el('button', null, '−'); minus.type = 'button'; minus.setAttribute('aria-label', p.name + 'を減らす');
+      var out = el('output', null, String(qty[i])); out.setAttribute('aria-live', 'polite');
+      var plus = el('button', null, '+'); plus.type = 'button'; plus.setAttribute('aria-label', p.name + 'を増やす');
+      minus.disabled = qty[i] <= 0; plus.disabled = qty[i] >= maxFor(i);
+      minus.onclick = function () { qty[i] = Math.max(0, qty[i] - 1); render(); };
+      plus.onclick = function () { qty[i] = Math.min(maxFor(i), qty[i] + 1); render(); };
+      st.appendChild(minus); st.appendChild(out); st.appendChild(plus);
+      row.appendChild(info); row.appendChild(st);
+      item.appendChild(row);
+      box.appendChild(item);
+    });
+    $('total').textContent = yen(total());
+
+    var info = $('infoBody'); info.innerHTML = '';
+    if (CONFIG.payment) { info.appendChild(el('h3', null, 'お支払い方法')); info.appendChild(el('p', null, CONFIG.payment)); }
+    if (CONFIG.notes) { info.appendChild(el('h3', null, 'ご注意')); info.appendChild(el('p', null, CONFIG.notes)); }
+
+    $('mailHint').hidden = !CONFIG.sendMail;
+    var closed = CONFIG.status !== 'open';
+    $('toConfirm').disabled = closed;
+    $('toConfirm').textContent = closed ? (CONFIG.status === 'before' ? '受付開始前です' : '受付は終了しました') : '入力内容を確認する';
+  }
+
+  function setupPickup() {
+    var p = $('pickup');
+    if (CONFIG.pickupFrom) p.min = CONFIG.pickupFrom;
+    if (CONFIG.pickupTo) p.max = CONFIG.pickupTo;
+    var h = '';
+    if (CONFIG.pickupFromText && CONFIG.pickupToText) h = CONFIG.pickupFromText + '〜' + CONFIG.pickupToText + 'の間でお選びください。';
+    else if (CONFIG.pickupFromText) h = CONFIG.pickupFromText + '以降の日付をお選びください。';
+    else if (CONFIG.pickupToText) h = CONFIG.pickupToText + 'までの日付をお選びください。';
+    $('pickupHint').textContent = h;
+  }
+
+  var WEEK = '日月火水木金土';
+  function dayText(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) return iso;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+    return m[1] + '年' + Number(m[2]) + '月' + Number(m[3]) + '日（' + WEEK.charAt(d.getDay()) + '）';
+  }
+
+  function total() {
+    return CONFIG.products.reduce(function (s, p, i) { return s + p.price * qty[i]; }, 0);
+  }
+
+  function values() {
+    return {
+      name: $('name').value.trim(), email: $('email').value.trim(),
+      pickup: $('pickup').value, qty: qty.slice(), website: $('website').value
+    };
+  }
+
+  function validate(v) {
+    if (qty.every(function (n) { return n === 0; })) return '福袋の個数を1つ以上選んでください。';
+    if (!v.name) return '氏名を入力してください。';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) return 'メールアドレスを正しく入力してください。';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v.pickup)) return '引取日を選んでください。';
+    if (CONFIG.pickupFrom && v.pickup < CONFIG.pickupFrom) return '引取日は' + CONFIG.pickupFromText + '以降を選んでください。';
+    if (CONFIG.pickupTo && v.pickup > CONFIG.pickupTo) return '引取日は' + CONFIG.pickupToText + 'までの日付を選んでください。';
+    if (!$('agree').checked) return '「お支払い・ご注意」をご確認のうえ、チェックを入れてください。';
+    return '';
+  }
+
+  function show(view) {
+    ['formView', 'confirmView', 'doneView'].forEach(function (id) { $(id).hidden = id !== view; });
+    window.scrollTo(0, 0);
+  }
+
+  $('formView').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = values(), msg = validate(v);
+    $('formError').textContent = msg;
+    if (msg) return;
+    var dl = $('confirmList'); dl.innerHTML = '';
+    var add = function (k, val) { dl.appendChild(el('dt', null, k)); dl.appendChild(el('dd', null, val)); };
+    CONFIG.products.forEach(function (p, i) { if (qty[i]) add(p.name, qty[i] + '個'); });
+    add('合計（税込）', yen(total()) + '円');
+    add('氏名', v.name); add('メール', v.email); add('引取日', dayText(v.pickup));
+    add('お支払い', CONFIG.payment);
+    $('sendError').textContent = '';
+    show('confirmView');
+  });
+
+  $('back').onclick = function () { show('formView'); };
+
+  $('send').onclick = function () {
+    var btn = $('send');
+    btn.disabled = true; btn.textContent = '送信中…';
+    $('sendError').textContent = '';
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // CORS の事前確認を避ける
+      body: JSON.stringify(values())
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (r) {
+        if (!r.ok) {
+          $('sendError').textContent = r.error || '送信できませんでした。';
+          if (r.config) { CONFIG = r.config; render(); }
+          return;
+        }
+        $('orderNo').textContent = r.orderNo;
+        $('doneMsg').textContent = '合計 ' + yen(r.total) + '円（税込）。お受け取りの際に申込番号をお伝えください。' +
+          (r.mailSent ? '確認メールをお送りしました。' : '');
+        show('doneView');
+      })
+      .catch(function () {
+        $('sendError').textContent = '通信に失敗しました。電波の良い場所で、もう一度お試しください。';
+      })
+      .then(function () { btn.disabled = false; btn.textContent = 'この内容で予約する'; });
+  };
+
+  function start() {
+    fetch(API_URL + '?action=config')
+      .then(function (res) { return res.json(); })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.error);
+        CONFIG = r.config;
+        qty = CONFIG.products.map(function () { return 0; });
+        $('loading').hidden = true;
+        $('formView').hidden = false;
+        setupPickup();
+        render();
+      })
+      .catch(function () {
+        $('loading').hidden = true;
+        var e = $('loadError');
+        e.hidden = false;
+        e.textContent = 'フォームを読み込めませんでした。時間をおいて再度お試しください。';
+      });
+  }
+
+  start();
+</script>
+</body>
+</html>
