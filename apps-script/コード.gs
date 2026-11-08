@@ -9,6 +9,7 @@ const ORDER_SHEET = '申込一覧';
 const SETTING_SHEET = '設定';
 const STATUS_DEFAULT = '受付';
 const STATUS_CANCEL = 'キャンセル';
+const ORDER_PREFIX = 'HB2027-';
 const MAX_QTY_PER_ITEM = 99; // 入力ミス防止のための上限
 
 /*
@@ -200,7 +201,7 @@ function clean_(s, max) {
   return t;
 }
 
-/** 6桁のランダムな申込番号（既存の番号と重複しないもの）を返す */
+/** 「HB2027-」＋6桁のランダムな申込番号（既存の番号と重複しないもの）を返す */
 function nextOrderNo_(sheet) {
   const last = sheet.getLastRow();
   const used = {};
@@ -208,7 +209,7 @@ function nextOrderNo_(sheet) {
     sheet.getRange(2, 1, last - 1, 1).getDisplayValues().forEach(function (r) { used[r[0]] = true; });
   }
   for (let i = 0; i < 50; i++) {
-    const no = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    const no = ORDER_PREFIX + String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
     if (!used[no]) return no;
   }
   throw new Error('申込番号を発行できませんでした。もう一度お試しください。');
