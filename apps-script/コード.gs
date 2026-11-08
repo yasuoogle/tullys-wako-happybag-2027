@@ -83,10 +83,11 @@ function submitOrder(data) {
     if (qty.reduce(function (a, b) { return a + b; }, 0) === 0) throw new Error('福袋の個数を1つ以上選んでください。');
 
     const total = cfg.products.reduce(function (sum, p, i) { return sum + p.price * qty[i]; }, 0);
-    const orderNo = nextOrderNo_();
 
     const sheet = SpreadsheetApp.getActive().getSheetByName(ORDER_SHEET);
+    const orderNo = nextOrderNo_(sheet);
     const row = sheet.getLastRow() + 1;
+    sheet.getRange(row, 1).setNumberFormat('@'); // 先頭の0が消えないよう文字列として保存
     // 列：申込番号 / 申込日時 / 氏名 / メール / 引取日 / 5500個数 / 10000個数 / 合計金額 / 状況
     sheet.getRange(row, 1, 1, 9).setValues([[
       orderNo, new Date(), name, email, pickup, qty[0] || 0, qty[1] || 0, '', STATUS_DEFAULT
@@ -199,11 +200,18 @@ function clean_(s, max) {
   return t;
 }
 
-function nextOrderNo_() {
-  const props = PropertiesService.getScriptProperties();
-  const n = Number(props.getProperty('ORDER_SEQ') || 0) + 1;
-  props.setProperty('ORDER_SEQ', String(n));
-  return 'HB-' + ('000' + n).slice(-4);
+/** 6桁のランダムな申込番号（既存の番号と重複しないもの）を返す */
+function nextOrderNo_(sheet) {
+  const last = sheet.getLastRow();
+  const used = {};
+  if (last >= 2) {
+    sheet.getRange(2, 1, last - 1, 1).getDisplayValues().forEach(function (r) { used[r[0]] = true; });
+  }
+  for (let i = 0; i < 50; i++) {
+    const no = String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+    if (!used[no]) return no;
+  }
+  throw new Error('申込番号を発行できませんでした。もう一度お試しください。');
 }
 
 function mailBody_(cfg, o) {
