@@ -61,6 +61,7 @@ function submitOrder(data) {
 
     const name = clean_(data.name, 50);
     const email = clean_(data.email, 100);
+    const message = clean_(data.message, 500);
 
     if (!name) throw new Error('氏名を入力してください。');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('メールアドレスを正しく入力してください。');
@@ -89,9 +90,9 @@ function submitOrder(data) {
     const orderNo = nextOrderNo_(sheet);
     const row = sheet.getLastRow() + 1;
     sheet.getRange(row, 1).setNumberFormat('@'); // 先頭の0が消えないよう文字列として保存
-    // 列：申込番号 / 申込日時 / 氏名 / メール / 引取日 / 5500個数 / 10000個数 / 合計金額 / 状況
-    sheet.getRange(row, 1, 1, 9).setValues([[
-      orderNo, new Date(), name, email, pickup, qty[0] || 0, qty[1] || 0, '', STATUS_DEFAULT
+    // 列：申込番号 / 申込日時 / 氏名 / メール / 引取日 / 5500個数 / 10000個数 / 合計金額 / 状況 / 通信欄
+    sheet.getRange(row, 1, 1, 10).setValues([[
+      orderNo, new Date(), name, email, pickup, qty[0] || 0, qty[1] || 0, '', STATUS_DEFAULT, message
     ]]);
     sheet.getRange(row, 8).setFormula('=F' + row + '*設定!$B$15+G' + row + '*設定!$B$16');
     SpreadsheetApp.flush();
@@ -102,7 +103,7 @@ function submitOrder(data) {
         MailApp.sendEmail({
           to: email,
           subject: '【' + cfg.storeName + '】Happy Bag ご予約を承りました（' + orderNo + '）',
-          body: mailBody_(cfg, { orderNo: orderNo, name: name, qty: qty, total: total, pickup: fmtDay_(pickup) }),
+          body: mailBody_(cfg, { orderNo: orderNo, name: name, qty: qty, total: total, pickup: fmtDay_(pickup), message: message }),
           name: cfg.storeName
         });
         mailSent = true;
@@ -225,6 +226,7 @@ function mailBody_(cfg, o) {
   });
   lines.push('■ 合計金額：' + o.total.toLocaleString('ja-JP') + '円（税込）');
   lines.push('■ 引取日：' + o.pickup);
+  if (o.message) lines.push('■ 通信欄：' + o.message.replace(/^'/, ''));
   lines.push('', '【お支払い】', cfg.payment);
   if (cfg.notes) lines.push('', '【ご注意】', cfg.notes);
   lines.push('', 'お受け取りの際に申込番号をお伝えください。', '', cfg.storeName);

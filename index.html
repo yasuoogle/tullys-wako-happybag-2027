@@ -100,6 +100,8 @@
       <label class="f" for="pickup">引取日<span class="req">必須</span></label>
       <input type="date" id="pickup" required>
       <div class="hint" id="pickupHint"></div>
+      <label class="f" for="message">通信欄<span class="opt">任意</span></label>
+      <textarea id="message" maxlength="500" placeholder="ご要望などがあればご記入ください"></textarea>
       <div class="hp" aria-hidden="true"><label>website<input type="text" id="website" tabindex="-1" autocomplete="off"></label></div>
     </section>
 
@@ -247,7 +249,7 @@
   function values() {
     return {
       name: $('name').value.trim(), email: $('email').value.trim(),
-      pickup: $('pickup').value, qty: qty.slice(), website: $('website').value
+      pickup: $('pickup').value, message: $('message').value.trim(), qty: qty.slice(), website: $('website').value
     };
   }
 
@@ -277,6 +279,7 @@
     CONFIG.products.forEach(function (p, i) { if (qty[i]) add(p.name, qty[i] + '個'); });
     add('合計（税込）', yen(total()) + '円');
     add('氏名', v.name); add('メール', v.email); add('引取日', dayText(v.pickup));
+    if (v.message) add('通信欄', v.message);
     add('お支払い', CONFIG.payment);
     $('sendError').textContent = '';
     show('confirmView');
