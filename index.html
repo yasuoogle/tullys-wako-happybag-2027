@@ -29,12 +29,17 @@
   .item { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
   .item:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
   .item .product { border-top: 0; padding: 12px 0 0; }
+  .item { position: relative; }
+  .item.soldout img { opacity: .45; filter: grayscale(.6); }
+  .item.soldout::before { content: 'SOLD OUT'; position: absolute; top: 12px; left: 12px; z-index: 1;
+    background: var(--accent); color: #fff; font-weight: 800; letter-spacing: .08em; font-size: 14px; padding: 4px 10px; border-radius: 6px; }
+  .item:not(:first-child).soldout::before { top: 28px; }
   .item img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; border-radius: 8px; background: var(--soft); }
   input[type=date] { min-height: 48px; -webkit-appearance: none; appearance: none; }
   .product .pname { font-weight: 700; }
   .product .price { color: var(--accent); font-weight: 700; font-size: 18px; }
   .product .left { font-size: 12px; color: var(--sub); }
-  .product .left.soldout { color: var(--err); font-weight: 700; }
+  .product .left.soldout { color: var(--err); font-weight: 800; letter-spacing: .05em; }
   .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; flex-shrink: 0; }
   .stepper button { width: 44px; height: 44px; border: 0; background: var(--soft); color: var(--brand); font-size: 22px; cursor: pointer; }
   .stepper button:disabled { color: #c9bcb1; cursor: default; }
@@ -181,7 +186,7 @@
     var box = $('products'); box.innerHTML = '';
     CONFIG.products.forEach(function (p, i) {
       if (qty[i] > maxFor(i)) qty[i] = maxFor(i);
-      var item = el('div', 'item');
+      var item = el('div', 'item' + (p.remaining === 0 ? ' soldout' : ''));
       var src = p.image || LOCAL_IMAGES[i];
       if (src) {
         var img = el('img'); img.src = src; img.alt = p.name + 'の内容'; img.loading = 'lazy';
@@ -195,7 +200,7 @@
       pr.appendChild(el('span', 'left', '（税込）'));
       info.appendChild(pr);
       var notes = [];
-      if (p.remaining === 0) notes.push('完売しました');
+      if (p.remaining === 0) notes.push('SOLD OUT');
       else if (p.remaining != null && p.remaining <= 10) notes.push('残り' + p.remaining + '個');
       if (CONFIG.perPersonLimit != null) notes.push('お一人さま' + CONFIG.perPersonLimit + '個まで');
       if (notes.length) info.appendChild(el('div', 'left' + (p.remaining === 0 ? ' soldout' : ''), notes.join('・')));
