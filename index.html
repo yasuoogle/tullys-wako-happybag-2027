@@ -35,6 +35,8 @@
   .item:not(:first-child).soldout::before { top: 28px; }
   .contents { margin: 10px 0 0; padding: 12px 14px 12px 30px; background: var(--soft); border-radius: 8px; font-size: 13px; line-height: 1.7; }
   .contents li + li { margin-top: 2px; }
+  .lead { margin: 0 0 14px; font-size: 13px; color: var(--sub); }
+  .lead a { color: var(--accent); font-weight: 600; }
   .item img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; border-radius: 8px; background: var(--soft); }
   input[type=date] { min-height: 48px; -webkit-appearance: none; appearance: none; }
   .product .pname { font-weight: 700; }
@@ -91,6 +93,7 @@
   <form id="formView" novalidate hidden>
     <section class="card">
       <h2>予約内容</h2>
+      <p class="lead">よりくわしい商品の内容は<a href="https://www.tullys.co.jp/cpn/happybag2027/" target="_blank" rel="noopener">本部のページ</a>をご参照ください。</p>
       <div id="products"></div>
       <div class="total"><span>合計（税込）</span><span><span class="yen" id="total">0</span> 円</span></div>
     </section>
