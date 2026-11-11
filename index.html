@@ -17,8 +17,7 @@
     line-height: 1.7; -webkit-text-size-adjust: 100%; }
   .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px 48px; }
   header { background: var(--brand); color: #fff; padding: 28px 16px 24px; text-align: center; }
-  header .store { font-size: 13px; letter-spacing: .08em; opacity: .85; margin: 0 0 4px; }
-  header h1 { font-size: 22px; margin: 0; font-weight: 700; letter-spacing: .02em; }
+  header h1 { font-size: clamp(16px, 4.4vw, 22px); line-height: 1.6; margin: 0; font-weight: 700; letter-spacing: .02em; white-space: pre-line; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-top: 16px; }
   .card h2 { font-size: 16px; margin: 0 0 12px; padding-left: 10px; border-left: 4px solid var(--accent); }
   .banner { border-radius: 10px; padding: 14px 16px; margin-top: 16px; font-weight: 600; }
@@ -79,7 +78,6 @@
 </head>
 <body>
 <header>
-  <p class="store" id="storeName"></p>
   <h1 id="title"></h1>
 </header>
 <div class="wrap">
@@ -166,9 +164,8 @@
   }
 
   function render() {
-    $('storeName').textContent = CONFIG.storeName;
     $('title').textContent = CONFIG.title;
-    document.title = CONFIG.title;
+    document.title = CONFIG.title.replace(/\s*\n\s*/g, ' ');
 
     var b = $('banner');
     if (CONFIG.status === 'before') {
