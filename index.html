@@ -103,7 +103,7 @@
       <label class="f" for="name">氏名<span class="req">必須</span></label>
       <input type="text" id="name" autocomplete="name" placeholder="例）和光 太郎" required>
       <label class="f" for="email">連絡先メールアドレス<span class="req">必須</span></label>
-      <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="例）taro@example.com" required>
+      <input type="text" id="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="例）taro@example.com" required>
       <div class="hint" id="mailHint">ご予約内容の確認メールをお送りします。</div>
       <label class="f" for="pickup">引取日<span class="req">必須</span></label>
       <input type="date" id="pickup" required>
@@ -281,9 +281,16 @@
     return CONFIG.products.reduce(function (s, p, i) { return s + p.price * qty[i]; }, 0);
   }
 
+  // 全角文字やハイフンに似た記号（−‐－ーなど）を半角に直す
+  function normEmail(s) {
+    s = String(s || '');
+    if (s.normalize) s = s.normalize('NFKC');
+    return s.replace(/[\u2010-\u2015\u2212\u30FC\uFF0D\uFE63\u00AD]/g, '-').replace(/[\s\u3000]/g, '');
+  }
+
   function values() {
     return {
-      name: $('name').value.trim(), email: $('email').value.trim(),
+      name: $('name').value.trim(), email: normEmail($('email').value),
       pickup: $('pickup').value, message: $('message').value.trim(), qty: qty.slice(), website: $('website').value
     };
   }
@@ -291,7 +298,7 @@
   function validate(v) {
     if (qty.every(function (n) { return n === 0; })) return '福袋の個数を1つ以上選んでください。';
     if (!v.name) return '氏名を入力してください。';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email)) return 'メールアドレスを正しく入力してください。';
+    if (!/^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/.test(v.email)) return 'メールアドレスを正しく入力してください（半角英数字で入力してください）。';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(v.pickup)) return '引取日を選んでください。';
     if (CONFIG.pickupFrom && v.pickup < CONFIG.pickupFrom) return '引取日は' + CONFIG.pickupFromText + '以降を選んでください。';
     if (CONFIG.pickupTo && v.pickup > CONFIG.pickupTo) return '引取日は' + CONFIG.pickupToText + 'までの日付を選んでください。';
@@ -303,6 +310,8 @@
     ['formView', 'confirmView', 'doneView'].forEach(function (id) { $(id).hidden = id !== view; });
     window.scrollTo(0, 0);
   }
+
+  $('email').addEventListener('blur', function () { this.value = normEmail(this.value); });
 
   $('formView').addEventListener('submit', function (e) {
     e.preventDefault();
